@@ -196,11 +196,13 @@ func VerifyAccessToken(ctx context.Context, accessToken string) (*VerifyAccessTo
 	}
 
 	// Prepare http request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, urlVerifyAccessToken, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlVerifyAccessToken, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.URL.Query().Add("access_token", accessToken)
+	params := req.URL.Query()
+	params.Add("access_token", accessToken)
+	req.URL.RawQuery = params.Encode()
 
 	// Do http request and get response body
 	body, err := doRequestGetBody(req)
