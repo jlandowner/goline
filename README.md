@@ -86,7 +86,7 @@ func main() {
 	flag.Parse()
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", helloHandler)
+	router.HandleFunc("/hello", helloHandler)
 
 	// Setup logr
 	zapLog, err := zap.NewDevelopment()
