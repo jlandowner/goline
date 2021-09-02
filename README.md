@@ -36,7 +36,7 @@ import (
 func main() {
 	var clientid, idtoken string
 	flag.StringVar(&clientid, "clientid", "", "LINE Channel ID https://developers.line.biz/ja/reference/line-login/#verify-id-token")
-	flag.StringVar(&idtoken, "idtoken", "", "LINE Channel ID https://developers.line.biz/ja/reference/line-login/#verify-id-token")
+	flag.StringVar(&idtoken, "idtoken", "", "ID Token https://developers.line.biz/ja/reference/line-login/#verify-id-token")
 	flag.Parse()
 
 	ctx := context.TODO()
