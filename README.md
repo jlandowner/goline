@@ -1,3 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/jlandowner/goline)](https://goreportcard.com/report/github.com/jlandowner/goline)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jlandowner/goline.svg)](https://pkg.go.dev/github.com/jlandowner/goline)
+
 # Goline - Simple LINE Login for Go
 
 ## Support API
