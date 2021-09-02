@@ -33,6 +33,7 @@ var (
 	ErrInternalServerError = errors.New("500 Internal Server Error")
 )
 
+// Client is an http client access to LINE Login API
 type Client struct {
 	Client *http.Client
 }
