@@ -1,5 +1,4 @@
-# LINE Login for Golang
-LINE Login package for Go and authorizer for http server
+# Goline - Simple LINE Login pkg for Go
 
 ## Support API
 
@@ -15,27 +14,63 @@ LINE Login package for Go and authorizer for http server
 
 ## Install
 ```sh
-go get "github.com/jlandowner/go-line-authorizer"
+go get "github.com/jlandowner/goline"
 ```
 
-## Example(verify-id-token)
+### Example
 
-### Use http Middleware
+call verify-id-token API
 
 ```go
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	line "github.com/jlandowner/go-line-authorizer"
+	"github.com/jlandowner/goline"
 )
 
-const (
-	port int = 3000
+func main() {
+	var clientid, idtoken string
+	flag.StringVar(&clientid, "clientid", "", "LINE Channel ID https://developers.line.biz/ja/reference/line-login/#verify-id-token")
+	flag.StringVar(&idtoken, "idtoken", "", "LINE Channel ID https://developers.line.biz/ja/reference/line-login/#verify-id-token")
+	flag.Parse()
+
+	ctx := context.TODO()
+
+	line := goline.Client{Client: http.DefaultClient}
+
+	p, err := line.VerifyIDToken(ctx, clientid, idtoken, "")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("LINE User Name", p.Name)
+}
+```
+
+### Use http Middleware
+
+This package prepares http Middleware easy to integrate LINE Login in your http server.
+
+Here is a example server
+
+```go
+package main
+
+import (
+	"errors"
+	"flag"
+	"log"
+	"net/http"
+
+	"github.com/go-logr/zapr"
+	"github.com/gorilla/mux"
+	"github.com/jlandowner/goline"
+	"go.uber.org/zap"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,16 +88,29 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", helloHandler)
 
-	// Setup authorizer
-	lauth := line.NewLINEAuthorizer(*clientid)
+	// Setup logr
+	zapLog, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	log := zapr.NewLogger(zapLog)
+
+	// Setup Client
+	lineClient := &goline.Client{Client: http.DefaultClient}
+
+	// Setup Authorizer
+	lineAuth := goline.NewAuthorizer(*clientid, lineClient, zapr.NewLogger(zapLog))
 
 	// Use VerifyIDTokenMiddleware
-	router.Use(lauth.VerifyIDTokenMiddleware)
+	router.Use(lineAuth.VerifyIDTokenMiddleware)
 
 	// Or Use VerifyAccessTokenMiddleware
 	// router.Use(lauth.VerifyAccessTokenMiddleware)
 
-	log.Println(http.ListenAndServe(":3000", router))
+	err = http.ListenAndServe(":3000", router)
+	if !errors.Is(err, http.ErrServerClosed) {
+		log.Error(err, "unexpected err")
+	}
 }
 ```
 
@@ -81,25 +129,4 @@ $ curl -i http://localhost:3000/hello -H "Authorization: Bearer $idtoken"
 200 OK
 
 hello, XXX
-```
-
-### Use API directly
-
-Also you can directly use LINE Login API functions implemented in this package.
-
-```go
-import (
-	"context"
-	line "github.com/jlandowner/go-line-authorizer"
-)
-
-func GetLINEUserNameByIDToken(clientid, idtoken string) (string, error) {
-	ctx := context.TODO()
-
-	p, err := line.VerifyIDToken(ctx, clientid, idtoken, "")
-	if err != nil {
-		return "", err
-	}
-	return p.Name, nil
-}
 ```
