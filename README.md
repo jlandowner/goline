@@ -1,4 +1,4 @@
-# Goline - Simple LINE Login pkg for Go
+# Goline - Simple LINE Login for Go
 
 ## Support API
 
