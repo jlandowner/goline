@@ -33,13 +33,13 @@ func (a *Authorizer) VerifyIDTokenMiddleware(next http.Handler) http.Handler {
 		bearerToken := r.Header.Get("Authorization")
 		if bearerToken == "" {
 			log.Error(errors.New("innvalid header"), "bearer token not found in authorization header")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		idToken, err := extractTokenFromBearerToken(bearerToken)
 		if err != nil {
 			log.Error(err, "failed to extract token form bearer")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -70,14 +70,14 @@ func (a *Authorizer) VerifyAccessTokenMiddleware(next http.Handler) http.Handler
 		bearerToken := r.Header.Get("Authorization")
 		if bearerToken == "" {
 			log.Error(errors.New("innvalid header"), "bearer token not found in authorization header")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		accessToken, err := extractTokenFromBearerToken(bearerToken)
 		if err != nil {
 			log.Error(err, "failed to extract token form bearer")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -90,7 +90,7 @@ func (a *Authorizer) VerifyAccessTokenMiddleware(next http.Handler) http.Handler
 		}
 		if res.ClientID != a.clientID {
 			log.Error(errors.New("invalid access token"), "client id not match as expected", "got", res.ClientID, "expected", a.clientID)
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
