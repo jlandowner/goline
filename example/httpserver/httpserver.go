@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"net/http"
 
+	"github.com/go-logr/zapr"
 	"github.com/gorilla/mux"
-	line "github.com/jlandowner/go-line-authorizer"
+	"github.com/jlandowner/goline"
+	"go.uber.org/zap"
 )
 
 const (
@@ -28,14 +31,27 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", helloHandler)
 
-	// Setup authorizer
-	lauth := line.NewLINEAuthorizer(*clientid)
+	// Setup logr
+	zapLog, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	log := zapr.NewLogger(zapLog)
+
+	// Setup Client
+	lineClient := &goline.Client{Client: http.DefaultClient}
+
+	// Setup Authorizer
+	lineAuth := goline.NewAuthorizer(*clientid, lineClient, zapr.NewLogger(zapLog))
 
 	// Use VerifyIDTokenMiddleware
-	router.Use(lauth.VerifyIDTokenMiddleware)
+	router.Use(lineAuth.VerifyIDTokenMiddleware)
 
 	// Or Use VerifyAccessTokenMiddleware
 	// router.Use(lauth.VerifyAccessTokenMiddleware)
 
-	log.Println(http.ListenAndServe(":3000", router))
+	err = http.ListenAndServe(":3000", router)
+	if !errors.Is(err, http.ErrServerClosed) {
+		log.Error(err, "unexpected err")
+	}
 }
