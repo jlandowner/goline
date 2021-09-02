@@ -12,10 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	port int = 3000
-)
-
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	// Get User name
 	name := r.Header.Get("LINEDisplayName")
