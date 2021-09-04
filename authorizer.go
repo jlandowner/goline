@@ -10,6 +10,14 @@ import (
 	"github.com/go-logr/logr"
 )
 
+const (
+	HeaderKeyLINEUserID        = "LINEUserID"
+	HeaderKeyLINEDisplayName   = "LINEDisplayName"
+	HeaderKeyLINEPictureURL    = "LINEPictureURL"
+	HeaderKeyLINEEmail         = "LINEEmail"
+	HeaderKeyLINEStatusMessage = "LINEStatusMessage"
+)
+
 // Authorizer is a clientset of LINE Auth API
 type Authorizer struct {
 	lineClient *Client
@@ -29,13 +37,13 @@ func (a *Authorizer) VerifyIDTokenMiddleware(next http.Handler) http.Handler {
 		log := a.log.WithName("VerifyAccessTokenMiddleware")
 		ctx := context.TODO()
 
-		bearerToken := r.Header.Get("Authorization")
-		if bearerToken == "" {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
 			log.Error(errors.New("innvalid header"), "bearer token not found in authorization header")
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		idToken, err := extractTokenFromBearerToken(bearerToken)
+		idToken, err := extractBearerToken(authHeader)
 		if err != nil {
 			log.Error(err, "failed to extract token form bearer")
 			w.WriteHeader(http.StatusUnauthorized)
@@ -49,10 +57,10 @@ func (a *Authorizer) VerifyIDTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		r.Header.Add("LINEUserID", p.Sub)
-		r.Header.Add("LINEDisplayName", p.Name)
-		r.Header.Add("LINEPictureURL", p.Picutre)
-		r.Header.Add("LINEEmail", p.Email)
+		r.Header.Add(HeaderKeyLINEUserID, p.Sub)
+		r.Header.Add(HeaderKeyLINEDisplayName, p.Name)
+		r.Header.Add(HeaderKeyLINEPictureURL, p.Picutre)
+		r.Header.Add(HeaderKeyLINEEmail, p.Email)
 
 		next.ServeHTTP(w, r)
 	})
@@ -66,14 +74,14 @@ func (a *Authorizer) VerifyAccessTokenMiddleware(next http.Handler) http.Handler
 		log := a.log.WithName("VerifyAccessTokenMiddleware")
 		ctx := context.TODO()
 
-		bearerToken := r.Header.Get("Authorization")
-		if bearerToken == "" {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
 			log.Error(errors.New("innvalid header"), "bearer token not found in authorization header")
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		accessToken, err := extractTokenFromBearerToken(bearerToken)
+		accessToken, err := extractBearerToken(authHeader)
 		if err != nil {
 			log.Error(err, "failed to extract token form bearer")
 			w.WriteHeader(http.StatusUnauthorized)
@@ -94,17 +102,17 @@ func (a *Authorizer) VerifyAccessTokenMiddleware(next http.Handler) http.Handler
 			return
 		}
 
-		r.Header.Add("LINEUserID", p.UserID)
-		r.Header.Add("LINEDisplayName", p.DisplayName)
-		r.Header.Add("LINEPictureURL", p.PictureURL)
-		r.Header.Add("LINEStatusMessage", p.StatusMessage)
+		r.Header.Add(HeaderKeyLINEUserID, p.UserID)
+		r.Header.Add(HeaderKeyLINEDisplayName, p.DisplayName)
+		r.Header.Add(HeaderKeyLINEPictureURL, p.PictureURL)
+		r.Header.Add(HeaderKeyLINEStatusMessage, p.StatusMessage)
 
 		next.ServeHTTP(w, r)
 	})
 }
 
-func extractTokenFromBearerToken(bearerToken string) (string, error) {
-	arr := strings.Split(bearerToken, "Bearer ")
+func extractBearerToken(authHeader string) (string, error) {
+	arr := strings.Split(authHeader, "Bearer ")
 	if len(arr) != 2 {
 		return "", fmt.Errorf("Failed to get token")
 	}
