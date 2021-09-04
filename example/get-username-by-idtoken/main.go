@@ -19,7 +19,7 @@ func main() {
 
 	line := goline.Client{Client: http.DefaultClient}
 
-	p, err := line.VerifyIDToken(ctx, clientid, idtoken, "")
+	p, err := line.VerifyIDToken(ctx, clientid, idtoken, "", "")
 	if err != nil {
 		log.Fatalln(err)
 	}

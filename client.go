@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 const (
@@ -38,8 +36,8 @@ type Client struct {
 	Client *http.Client
 }
 
-// IDTokenData is the response json struct of verify-id-token API
-// See more -> https://developers.line.biz/ja/reference/line-login/#verify-id-token
+// IDTokenData is the response json struct of verify-id-token API.
+// https://developers.line.biz/ja/reference/line-login/#verify-id-token
 type IDTokenData struct {
 	Iss     string   `json:"iss"`
 	Sub     string   `json:"sub"`
@@ -52,8 +50,10 @@ type IDTokenData struct {
 	Email   string   `json:"email,omitempty"`
 }
 
-// VerifyIDToken is a function to call verify-id-token
-func (c *Client) VerifyIDToken(ctx context.Context, clientid, idToken, userid string) (*IDTokenData, error) {
+// VerifyIDToken is a function to call verify-id-token.
+// UserID and Nonce can be empty when not use.
+// https://developers.line.biz/ja/reference/line-login/#verify-id-token
+func (c *Client) VerifyIDToken(ctx context.Context, clientid, idToken, userid, nonce string) (*IDTokenData, error) {
 	// Check token paramater
 	if idToken == "" {
 		return nil, errors.New("ID Token not found")
@@ -66,7 +66,7 @@ func (c *Client) VerifyIDToken(ctx context.Context, clientid, idToken, userid st
 	}
 	req.Header.Add("Authorization", bearerToken(idToken))
 	req.URL.Query().Add("clientid", clientid)
-	req.URL.Query().Add("nonce", strconv.Itoa(int(time.Now().UnixNano())))
+	req.URL.Query().Add("nonce", nonce)
 	if userid != "" {
 		req.URL.Query().Add("userid", userid)
 	}
@@ -79,8 +79,8 @@ func (c *Client) VerifyIDToken(ctx context.Context, clientid, idToken, userid st
 	return d, nil
 }
 
-// VerifyAccessTokenResponse is the response json struct of verify-access-token API
-// See more -> https://developers.line.biz/ja/reference/line-login/#verify-access-token
+// VerifyAccessTokenResponse is the response json struct of verify-access-token API.
+// https://developers.line.biz/ja/reference/line-login/#verify-access-token
 type VerifyAccessTokenResponse struct {
 	Scope     string `json:"scope"`
 	ClientID  string `json:"client_id"`
@@ -88,6 +88,7 @@ type VerifyAccessTokenResponse struct {
 }
 
 // VerifyAccessToken is a function to call verify-access-token API
+// https://developers.line.biz/ja/reference/line-login/#verify-access-token
 func (c *Client) VerifyAccessToken(ctx context.Context, accessToken string) (*VerifyAccessTokenResponse, error) {
 	// Check token paramater
 	if accessToken == "" {
@@ -112,7 +113,7 @@ func (c *Client) VerifyAccessToken(ctx context.Context, accessToken string) (*Ve
 }
 
 // LINEProfile is the response json struct of get-user-profile API
-// See more -> https://developers.line.biz/ja/reference/line-login-v2/#get-profile-response
+// https://developers.line.biz/ja/reference/line-login-v2/#get-profile-response
 type LINEProfile struct {
 	UserID        string `json:"userId"`
 	DisplayName   string `json:"displayName"`
@@ -121,6 +122,7 @@ type LINEProfile struct {
 }
 
 // GetProfile is a function to call get-user-profile API
+// https://developers.line.biz/ja/reference/line-login-v2/#get-profile-response
 func (c *Client) GetProfile(ctx context.Context, accessToken string) (*LINEProfile, error) {
 	// Check token paramater
 	if accessToken == "" {

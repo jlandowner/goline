@@ -43,7 +43,7 @@ func (a *Authorizer) VerifyIDTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		p, err := a.lineClient.VerifyIDToken(ctx, a.clientID, idToken, "")
+		p, err := a.lineClient.VerifyIDToken(ctx, a.clientID, idToken, "", "")
 		if err != nil || p == nil {
 			log.Error(err, "failed to verify id token", "profile", p)
 			w.WriteHeader(http.StatusUnauthorized)
