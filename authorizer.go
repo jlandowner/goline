@@ -114,7 +114,7 @@ func (a *Authorizer) VerifyAccessTokenMiddleware(next http.Handler) http.Handler
 func extractBearerToken(authHeader string) (string, error) {
 	arr := strings.Split(authHeader, "Bearer ")
 	if len(arr) != 2 {
-		return "", fmt.Errorf("Failed to get token")
+		return "", fmt.Errorf("not bearer")
 	}
 	return arr[1], nil
 }
