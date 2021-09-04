@@ -78,7 +78,7 @@ import (
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	// Get User name
-	name := r.Header.Get("LINEDisplayName")
+	name := r.Header.Get(goline.HeaderKeyLINEDisplayName)
 
 	log.Println("hello,", name)
 	w.Write([]byte("hello," + name))
