@@ -17,9 +17,9 @@ func main() {
 
 	ctx := context.TODO()
 
-	line := goline.Client{Client: http.DefaultClient}
+	line := goline.NewClient(clientid, http.DefaultClient)
 
-	p, err := line.VerifyIDToken(ctx, clientid, idtoken, "", "")
+	p, err := line.VerifyIDToken(ctx, idtoken, "", "")
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -33,7 +33,16 @@ var (
 
 // Client is an http client access to LINE Login API
 type Client struct {
-	Client *http.Client
+	id     string
+	client *http.Client
+}
+
+// NewClient returns LINE loging API Client. "id" is LINE Client ID a.k.a LINE Channel ID.
+func NewClient(id string, client *http.Client) *Client {
+	return &Client{
+		id:     id,
+		client: client,
+	}
 }
 
 // IDTokenData is the response json struct of verify-id-token API.
@@ -53,7 +62,7 @@ type IDTokenData struct {
 // VerifyIDToken is a function to call verify-id-token.
 // UserID and Nonce can be empty when not use.
 // https://developers.line.biz/ja/reference/line-login/#verify-id-token
-func (c *Client) VerifyIDToken(ctx context.Context, clientid, idToken, userid, nonce string) (*IDTokenData, error) {
+func (c *Client) VerifyIDToken(ctx context.Context, idToken, userid, nonce string) (*IDTokenData, error) {
 	// Check token paramater
 	if idToken == "" {
 		return nil, errors.New("ID Token not found")
@@ -65,7 +74,7 @@ func (c *Client) VerifyIDToken(ctx context.Context, clientid, idToken, userid, n
 		return nil, err
 	}
 	req.Header.Add("Authorization", bearerToken(idToken))
-	req.URL.Query().Add("clientid", clientid)
+	req.URL.Query().Add("clientid", c.id)
 	req.URL.Query().Add("nonce", nonce)
 	if userid != "" {
 		req.URL.Query().Add("userid", userid)
@@ -109,6 +118,13 @@ func (c *Client) VerifyAccessToken(ctx context.Context, accessToken string) (*Ve
 	if err := c.doRequestGetBody(req, res); err != nil {
 		return nil, err
 	}
+
+	if c.id != "" {
+		if res.ClientID != c.id {
+			return nil, errors.New("Client ID does not match")
+		}
+	}
+
 	return res, nil
 }
 
@@ -146,7 +162,7 @@ func (c *Client) GetProfile(ctx context.Context, accessToken string) (*LINEProfi
 
 func (c *Client) doRequestGetBody(req *http.Request, v interface{}) error {
 	// Do http request
-	res, err := c.Client.Do(req)
+	res, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}

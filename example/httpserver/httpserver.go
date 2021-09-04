@@ -35,7 +35,7 @@ func main() {
 	log := zapr.NewLogger(zapLog)
 
 	// Setup Client
-	lineClient := &goline.Client{Client: http.DefaultClient}
+	lineClient := goline.NewClient(*clientid, http.DefaultClient)
 
 	// Setup Authorizer
 	lineAuth := goline.NewAuthorizer(*clientid, lineClient, zapr.NewLogger(zapLog))

@@ -17,13 +17,10 @@ func main() {
 
 	ctx := context.TODO()
 
-	line := goline.Client{Client: http.DefaultClient}
+	line := goline.NewClient(clientid, http.DefaultClient)
 
-	if res, err := line.VerifyAccessToken(ctx, accesstoken); err != nil {
+	if _, err := line.VerifyAccessToken(ctx, accesstoken); err != nil {
 		log.Fatalln(err)
-
-	} else if res.ClientID != clientid {
-		log.Fatalln("client id not match")
 	}
 
 	p, err := line.GetProfile(ctx, accesstoken)

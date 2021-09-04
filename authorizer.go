@@ -12,14 +12,13 @@ import (
 
 // Authorizer is a clientset of LINE Auth API
 type Authorizer struct {
-	clientID   string
 	lineClient *Client
 	log        logr.Logger
 }
 
 // NewAuthorizer return new Authorizer
 func NewAuthorizer(clientid string, lineClient *Client, log logr.Logger) *Authorizer {
-	return &Authorizer{clientID: clientid, lineClient: lineClient, log: log.WithName("goline.Authorizer")}
+	return &Authorizer{lineClient: lineClient, log: log.WithName("goline.Authorizer")}
 }
 
 // VerifyIDTokenMiddleware is a middleware of http handler
@@ -43,7 +42,7 @@ func (a *Authorizer) VerifyIDTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		p, err := a.lineClient.VerifyIDToken(ctx, a.clientID, idToken, "", "")
+		p, err := a.lineClient.VerifyIDToken(ctx, idToken, "", "")
 		if err != nil || p == nil {
 			log.Error(err, "failed to verify id token", "profile", p)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -82,14 +81,8 @@ func (a *Authorizer) VerifyAccessTokenMiddleware(next http.Handler) http.Handler
 		}
 
 		// first verify access token to check client ID
-		res, err := a.lineClient.VerifyAccessToken(ctx, accessToken)
-		if err != nil {
+		if _, err := a.lineClient.VerifyAccessToken(ctx, accessToken); err != nil {
 			log.Error(err, "failed to verify access token")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		if res.ClientID != a.clientID {
-			log.Error(errors.New("invalid access token"), "client id not match as expected", "got", res.ClientID, "expected", a.clientID)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
