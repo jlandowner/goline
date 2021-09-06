@@ -37,7 +37,7 @@ func (a *Authorizer) VerifyIDTokenMiddleware(next http.Handler) http.Handler {
 		log := a.log.WithName("VerifyAccessTokenMiddleware")
 		ctx := context.TODO()
 
-		authHeader := r.Header.Get("Authorization")
+		authHeader := r.Header.Get(authHeader)
 		if authHeader == "" {
 			log.Error(errors.New("innvalid header"), "bearer token not found in authorization header")
 			w.WriteHeader(http.StatusUnauthorized)

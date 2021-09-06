@@ -16,6 +16,8 @@ const (
 	urlVerifyAccessToken = "https://api.line.me/oauth2/v2.1/verify"
 	// See https://developers.line.biz/ja/reference/line-login/#verify-id-token
 	urlVerifyIDToken = "https://api.line.me/oauth2/v2.1/verify"
+
+	authHeader = "authorization"
 )
 
 var (
@@ -65,7 +67,7 @@ type IDTokenData struct {
 func (c *Client) VerifyIDToken(ctx context.Context, idToken, userid, nonce string) (*IDTokenData, error) {
 	// Check token paramater
 	if idToken == "" {
-		return nil, errors.New("ID Token not found")
+		return nil, errors.New("idtoken not found")
 	}
 
 	// Prepare http request
@@ -73,7 +75,7 @@ func (c *Client) VerifyIDToken(ctx context.Context, idToken, userid, nonce strin
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", bearerToken(idToken))
+	req.Header.Add(authHeader, bearerToken(idToken))
 	req.URL.Query().Add("clientid", c.id)
 	req.URL.Query().Add("nonce", nonce)
 	if userid != "" {
@@ -101,7 +103,7 @@ type VerifyAccessTokenResponse struct {
 func (c *Client) VerifyAccessToken(ctx context.Context, accessToken string) (*VerifyAccessTokenResponse, error) {
 	// Check token paramater
 	if accessToken == "" {
-		return nil, errors.New("Access Token not found")
+		return nil, errors.New("access token not found")
 	}
 
 	// Prepare http request
@@ -121,7 +123,7 @@ func (c *Client) VerifyAccessToken(ctx context.Context, accessToken string) (*Ve
 
 	if c.id != "" {
 		if res.ClientID != c.id {
-			return nil, errors.New("Client ID does not match")
+			return nil, fmt.Errorf("client ID does not match: got %s want %s", res.ClientID, c.id)
 		}
 	}
 
@@ -142,7 +144,7 @@ type LINEProfile struct {
 func (c *Client) GetProfile(ctx context.Context, accessToken string) (*LINEProfile, error) {
 	// Check token paramater
 	if accessToken == "" {
-		return nil, errors.New("Access Token not found")
+		return nil, errors.New("access token not found")
 	}
 
 	// Prepare http request
@@ -150,7 +152,7 @@ func (c *Client) GetProfile(ctx context.Context, accessToken string) (*LINEProfi
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", bearerToken(accessToken))
+	req.Header.Add(authHeader, bearerToken(accessToken))
 
 	// Do http request and get response body
 	p := &LINEProfile{}
@@ -160,7 +162,13 @@ func (c *Client) GetProfile(ctx context.Context, accessToken string) (*LINEProfi
 	return p, nil
 }
 
-func (c *Client) doRequestGetBody(req *http.Request, v interface{}) error {
+func (c *Client) doRequestGetBody(req *http.Request, resbody interface{}) error {
+	if req == nil {
+		return errors.New("request is nil")
+	}
+	if resbody == nil {
+		return errors.New("response body is nil")
+	}
 	// Do http request
 	res, err := c.client.Do(req)
 	if err != nil {
@@ -179,7 +187,7 @@ func (c *Client) doRequestGetBody(req *http.Request, v interface{}) error {
 		return err
 	}
 
-	if err := json.Unmarshal(b, v); err != nil {
+	if err := json.Unmarshal(b, resbody); err != nil {
 		return err
 	}
 	return nil
