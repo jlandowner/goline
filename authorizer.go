@@ -25,7 +25,7 @@ type Authorizer struct {
 }
 
 // NewAuthorizer return new Authorizer
-func NewAuthorizer(clientid string, lineClient *Client, log logr.Logger) *Authorizer {
+func NewAuthorizer(lineClient *Client, log logr.Logger) *Authorizer {
 	return &Authorizer{lineClient: lineClient, log: log.WithName("goline.Authorizer")}
 }
 

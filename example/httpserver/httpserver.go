@@ -38,7 +38,7 @@ func main() {
 	lineClient := goline.NewClient(*clientid, http.DefaultClient)
 
 	// Setup Authorizer
-	lineAuth := goline.NewAuthorizer(*clientid, lineClient, zapr.NewLogger(zapLog))
+	lineAuth := goline.NewAuthorizer(lineClient, zapr.NewLogger(zapLog))
 
 	// Use VerifyIDTokenMiddleware
 	router.Use(lineAuth.VerifyIDTokenMiddleware)

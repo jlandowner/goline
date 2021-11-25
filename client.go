@@ -35,15 +35,15 @@ var (
 
 // Client is an http client access to LINE Login API
 type Client struct {
-	id     string
-	client *http.Client
+	clientid string
+	client   *http.Client
 }
 
 // NewClient returns LINE loging API Client. "id" is LINE Client ID a.k.a LINE Channel ID.
-func NewClient(id string, client *http.Client) *Client {
+func NewClient(clientid string, client *http.Client) *Client {
 	return &Client{
-		id:     id,
-		client: client,
+		clientid: clientid,
+		client:   client,
 	}
 }
 
@@ -76,7 +76,7 @@ func (c *Client) VerifyIDToken(ctx context.Context, idToken, userid, nonce strin
 		return nil, err
 	}
 	req.Header.Add(authHeader, bearerToken(idToken))
-	req.URL.Query().Add("clientid", c.id)
+	req.URL.Query().Add("clientid", c.clientid)
 	req.URL.Query().Add("nonce", nonce)
 	if userid != "" {
 		req.URL.Query().Add("userid", userid)
@@ -121,9 +121,9 @@ func (c *Client) VerifyAccessToken(ctx context.Context, accessToken string) (*Ve
 		return nil, err
 	}
 
-	if c.id != "" {
-		if res.ClientID != c.id {
-			return nil, fmt.Errorf("client ID does not match: got %s want %s", res.ClientID, c.id)
+	if c.clientid != "" {
+		if res.ClientID != c.clientid {
+			return nil, fmt.Errorf("client ID does not match: got %s want %s", res.ClientID, c.clientid)
 		}
 	}
 
